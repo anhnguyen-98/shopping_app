@@ -113,3 +113,14 @@ create table refresh_token (
     constraint fk_refresh_token_user foreign key (user_id) references user (id)
 );
 
+create table email_verification_token (
+   token_id bigint auto_increment not null ,
+   token varchar(100) not null unique ,
+   user_id bigint not null ,
+   token_status enum('STATUS_PENDING', 'STATUS_CONFIRMED'),
+   expiry_date timestamp not null ,
+   created_at timestamp,
+   updated_at timestamp,
+   primary key (token_id),
+   constraint fk_email_verification_token_user foreign key (user_id) references user (id)
+);

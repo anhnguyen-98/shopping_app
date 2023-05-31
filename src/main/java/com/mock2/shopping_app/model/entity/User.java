@@ -2,6 +2,7 @@ package com.mock2.shopping_app.model.entity;
 
 import com.mock2.shopping_app.model.audit.DateAudit;
 import com.mock2.shopping_app.model.enums.Gender;
+import com.mock2.shopping_app.model.token.EmailVerificationToken;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +11,6 @@ import lombok.Setter;
 import org.hibernate.annotations.NaturalId;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -54,9 +54,14 @@ public class User extends DateAudit {
     @JoinColumn(name = "address_id")
     private Address address;
 
-//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-//    private List<Purchase> purchaseList;
-//
-//    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-//    private List<Review> reviewList;
+    @OneToOne(mappedBy = "user", orphanRemoval = true)
+    private EmailVerificationToken emailVerificationToken;
+
+    public void verificationConfirmed() {
+        setEmailVerified(true);
+    }
+
+    public boolean getEmailVerified() {
+        return this.isEmailVerified;
+    }
 }

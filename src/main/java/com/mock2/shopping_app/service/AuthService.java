@@ -5,6 +5,7 @@ import com.mock2.shopping_app.model.request.RefreshTokenRequest;
 import com.mock2.shopping_app.model.request.RegistrationRequest;
 import com.mock2.shopping_app.model.entity.RefreshToken;
 import com.mock2.shopping_app.model.entity.User;
+import com.mock2.shopping_app.model.token.EmailVerificationToken;
 import com.mock2.shopping_app.security.CustomUserDetails;
 import org.springframework.security.core.Authentication;
 
@@ -22,4 +23,8 @@ public interface AuthService {
     Optional<String> refreshJwtToken(RefreshTokenRequest refreshTokenRequest);
 
     void deleteRefreshTokenByUserId(Long userId);
+
+    Optional<User> confirmEmailRegistration(String verificationToken);
+
+    Optional<EmailVerificationToken> revalidateEmailVerificationToken(String existingToken);
 }
