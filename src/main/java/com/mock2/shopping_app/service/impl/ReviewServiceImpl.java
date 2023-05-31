@@ -12,6 +12,7 @@ import com.mock2.shopping_app.repository.ReviewRepository;
 import com.mock2.shopping_app.service.OrderService;
 import com.mock2.shopping_app.service.ProductService;
 import com.mock2.shopping_app.service.ReviewService;
+import org.apache.log4j.Logger;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -23,6 +24,7 @@ import java.util.List;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
+    private final Logger logger = Logger.getLogger(ReviewServiceImpl.class);
     private final ReviewRepository reviewRepository;
     private final OrderService orderService;
     private final ProductService productService;
@@ -35,6 +37,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Page<Review> findAll(Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all reviews with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -49,6 +52,7 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Override
     public Page<Review> findAllByProductId(Long productId, Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all orders by product id with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -67,14 +71,27 @@ public class ReviewServiceImpl implements ReviewService {
     public void reviewProduct(Long productId, User user, ReviewDTO reviewDTO) {
         Product product = productService.findProductById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
+        logger.info("Starting to save review");
         if (orderService.existsByUserIdAndProductIdAndStatus(user.getId(), productId, OrderStatus.DELIVERED)) {
+            logger.info("Trying to save review");
             reviewRepository.save(Review.builder()
                             .review(reviewDTO.getReview())
                             .product(product)
                             .user(user).build());
         } else {
+            logger.error("User is not allowed to review");
             throw new InvalidToReviewProductException(productId);
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteReview(Long id) {
+        if (!reviewRepository.existsById(id)) {
+            throw new EntityNotFoundException("Review not found with id: " + id);
+        }
+        logger.info("Trying to delete review with id: " + id);
+        reviewRepository.deleteById(id);
     }
 
     private Page<Review> setReviewPage(List<Review> reviews, org.springframework.data.domain.Page<Review> pagedResult) {

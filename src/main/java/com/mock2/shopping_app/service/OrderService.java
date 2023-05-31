@@ -19,4 +19,6 @@ public interface OrderService {
     Boolean existsByUserIdAndProductIdAndStatus(Long userId, Long productId, OrderStatus status);
 
     void setOrderStatus(Long orderId, String status);
+
+    void deleteOrder(Long id);
 }

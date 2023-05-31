@@ -8,6 +8,7 @@ import com.mock2.shopping_app.repository.ProductImageRepository;
 import com.mock2.shopping_app.repository.ProductRepository;
 import com.mock2.shopping_app.service.ProductImageService;
 import com.mock2.shopping_app.util.Util;
+import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
@@ -26,6 +27,7 @@ import java.util.Objects;
 
 @Service
 public class ProductImageServiceImpl implements ProductImageService {
+    private final Logger logger = Logger.getLogger(ProductImageServiceImpl.class);
     private final ProductImageRepository productImageRepository;
     private final ProductRepository productRepository;
     private final ModelMapper modelMapper;
@@ -41,6 +43,7 @@ public class ProductImageServiceImpl implements ProductImageService {
 
     @Override
     public Page<ProductImage> findAll(Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all product images with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -60,8 +63,10 @@ public class ProductImageServiceImpl implements ProductImageService {
 
     @Override
     public void storeProductImage(Long productId, MultipartFile file) {
+        logger.info("Find product by id");
         productRepository.findById(productId)
                 .map(product -> {
+                    logger.info("Trying to store product image to database");
                     try {
                         String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
                         ProductImage productImage = new ProductImage();
@@ -71,26 +76,30 @@ public class ProductImageServiceImpl implements ProductImageService {
                         productImage.setProduct(product);
                         return productImageRepository.save(productImage);
                     } catch (IOException e) {
+                        logger.error("Exception by saving image");
                         throw new RuntimeException(e);
                     }
                 })
-                .orElseThrow(() -> new EntityNotFoundException("Product with id = " + productId + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
     }
 
     @Override
-    public ProductImage getProductImageById(Long id) {
+    public ProductImage findProductImageById(Long id) {
+        logger.info("Find product image by id");
         return productImageRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Product with id = " + id + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
     @Override
     @Transactional
     public void deleteProductImage(Long id) {
+        logger.info("Trying to delete product image");
         productImageRepository.deleteById(id);
     }
 
     @Override
     public ProductImageResponse mapProductImageToProductImageResponse(ProductImage productImage) {
+        logger.info("Map ProductImage object to ProductImageResponse object");
         ProductImageResponse productImageResponse = modelMapper.map(productImage, ProductImageResponse.class);
         String fileDownloadUri = ServletUriComponentsBuilder
                 .fromCurrentContextPath()

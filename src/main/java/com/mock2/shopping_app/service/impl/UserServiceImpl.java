@@ -13,6 +13,7 @@ import com.mock2.shopping_app.repository.UserRepository;
 import com.mock2.shopping_app.service.RoleService;
 import com.mock2.shopping_app.service.UserService;
 import com.mock2.shopping_app.util.Util;
+import org.apache.log4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +26,7 @@ import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService {
+    private final Logger logger = Logger.getLogger(UserServiceImpl.class);
     private final UserRepository userRepository;
     private final RoleService roleService;
     private final PasswordEncoder passwordEncoder;
@@ -37,6 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<User> findAll(Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all users with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -56,6 +59,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<User> findUserById(Long id) {
+        logger.info("Find user by id");
         return userRepository.findById(id);
     }
 
@@ -66,6 +70,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User createUser(RegistrationRequest registrationRequest) {
+        logger.info("Creating user...");
         User newUser = new User();
         newUser.setEmail(registrationRequest.getEmail());
         newUser.setFirstName(registrationRequest.getFirstName());
@@ -73,6 +78,7 @@ public class UserServiceImpl implements UserService {
         newUser.setGender(Gender.valueOf(registrationRequest.getGender()));
         newUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
         newUser.setPhone(registrationRequest.getPhone());
+        logger.info("Creating address...");
         Address address = new Address();
         address.setCity(registrationRequest.getAddress().getCity());
         address.setDistrict(registrationRequest.getAddress().getDistrict());
@@ -98,6 +104,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
+        logger.info("Save new user into database");
         return userRepository.save(user);
     }
 
@@ -106,6 +113,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
         // Update only the non-null properties from userDTO
+        logger.info("Partial update user information...");
         BeanUtils.copyProperties(userDTO, user, Util.getNullPropertyNames(userDTO));
         if (userDTO.getGender() != null && !userDTO.getGender().equals("")) {
             user.setGender(Gender.valueOf(userDTO.getGender()));
@@ -116,6 +124,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+        logger.info("Trying to delete user with id: " + id);
         userRepository.deleteById(id);
     }
 

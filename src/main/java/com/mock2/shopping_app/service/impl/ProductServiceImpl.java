@@ -8,6 +8,7 @@ import com.mock2.shopping_app.model.other.Page;
 import com.mock2.shopping_app.repository.ProductQuantityRepository;
 import com.mock2.shopping_app.repository.ProductRepository;
 import com.mock2.shopping_app.service.ProductService;
+import org.apache.log4j.Logger;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
+    private final Logger logger = Logger.getLogger(ProductServiceImpl.class);
     private final ProductRepository productRepository;
     private final ProductQuantityRepository productQuantityRepository;
     private final ModelMapper modelMapper;
@@ -33,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Page<Product> findAll(Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all products with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -52,6 +55,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Optional<Product> findProductById(Long id) {
+        logger.info("Find product by id");
         return productRepository.findById(id);
     }
 
@@ -59,6 +63,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public Product saveProduct(ProductDTO productDTO) {
         Long quantity = productDTO.getProductQuantity();
+        logger.info("Saving product to database");
         Product product = modelMapper.map(productDTO, Product.class);
         Product storedProduct = productRepository.save(product);
         ProductQuantity productQuantity = new ProductQuantity();
@@ -66,6 +71,7 @@ public class ProductServiceImpl implements ProductService {
         productQuantity.setQuantity(quantity);
         productQuantity.setProduct(storedProduct);
         storedProduct.setProductQuantity(productQuantity);
+        logger.info("Insert product quantity");
         productQuantityRepository.insertProductQuantity(storedProduct.getProductId(), quantity);
         return storedProduct;
     }
@@ -73,8 +79,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product updateProduct(Long productId, ProductDTO productDTO) {
         if (!productRepository.existsById(productId)) {
-            throw new EntityNotFoundException("Product with id = " + productId + " not found");
+            throw new EntityNotFoundException("Product not found with id: " + productId);
         }
+        logger.info("Update product information");
         Product product = modelMapper.map(productDTO, Product.class);
         product.setProductId(productId);
         return productRepository.save(product);
@@ -84,13 +91,9 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         if (!productRepository.existsById(id)) {
-            throw new EntityNotFoundException("Product with id = " + id + " not found");
+            throw new EntityNotFoundException("Product not found with id: " + id);
         }
+        logger.info("Trying to delete product with id = " + id);
         productRepository.deleteById(id);
-    }
-
-    @Override
-    public void uploadMedia() {
-        System.out.println("upload media!");
     }
 }

@@ -78,4 +78,11 @@ public class ReviewController {
         reviewService.reviewProduct(productId, currentUser.getUser(), reviewDTO);
         return ResponseEntity.ok(new ApiResponse(true, "Successfully review product with id: " + productId));
     }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @DeleteMapping("/review/{id}")
+    public ResponseEntity<ApiResponse> deleteReviewById(@PathVariable Long id) {
+        reviewService.deleteReview(id);
+        return ResponseEntity.ok(new ApiResponse(true, "Successfully delete review with id: " + id));
+    }
 }

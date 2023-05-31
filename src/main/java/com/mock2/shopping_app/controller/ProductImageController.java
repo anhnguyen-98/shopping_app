@@ -62,7 +62,7 @@ public class ProductImageController {
 
     @GetMapping("/productImage/{id}")
     public ResponseEntity<byte[]> getProductImage(@PathVariable Long id) {
-        ProductImage productImage = productImageService.getProductImageById(id);
+        ProductImage productImage = productImageService.findProductImageById(id);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + productImage.getName() + "\"")
@@ -72,12 +72,7 @@ public class ProductImageController {
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/productImage/{id}")
     public ResponseEntity<ApiResponse> deleteProductImage(@PathVariable Long id) {
-        try {
-            productImageService.deleteProductImage(id);
-            return ResponseEntity.ok(new ApiResponse(true, "Successfully delete product image with id: " + id));
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
-                    .body(new ApiResponse(false, "Could not delete product image with id: " + id));
-        }
+        productImageService.deleteProductImage(id);
+        return ResponseEntity.ok(new ApiResponse(true, "Successfully delete product image with id: " + id));
     }
 }

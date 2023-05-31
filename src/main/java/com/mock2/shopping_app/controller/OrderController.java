@@ -76,4 +76,11 @@ public class OrderController {
         orderService.setOrderStatus(orderId, orderStatusRequest.getStatus());
         return ResponseEntity.ok(new ApiResponse(true, "Successfully set order status"));
     }
+
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @DeleteMapping("/order/{id}")
+    public ResponseEntity<ApiResponse> deleteOrderById(@PathVariable Long id) {
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok(new ApiResponse(true, "Successfully delete order with id: " + id));
+    }
 }

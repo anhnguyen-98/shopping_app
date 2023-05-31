@@ -9,6 +9,7 @@ import com.mock2.shopping_app.model.request.OrderDTO;
 import com.mock2.shopping_app.repository.OrderProductRepository;
 import com.mock2.shopping_app.repository.OrderRepository;
 import com.mock2.shopping_app.service.OrderService;
+import org.apache.log4j.Logger;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,6 +23,7 @@ import java.util.Optional;
 
 @Service
 public class OrderServiceImpl implements OrderService {
+    private final Logger logger = Logger.getLogger(OrderServiceImpl.class);
     private final OrderRepository orderRepository;
     private final OrderProductRepository orderProductRepository;
 
@@ -40,8 +42,9 @@ public class OrderServiceImpl implements OrderService {
                 .mapToDouble(value -> value.getPrice() * value.getQuantity())
                 .sum();
         newOrder.setTotalCost(totalCost);
+        logger.info("Trying to store order into the order table");
         Order storedOrder = orderRepository.save(newOrder);
-
+        logger.info("Trying to insert order product into the order_product table");
         orderDTO.getOrderProductList().forEach(orderProductDTO -> {
             orderProductRepository.insertOrderProduct(storedOrder.getOrderId(), orderProductDTO.getProductId(),
                     orderProductDTO.getQuantity(), orderProductDTO.getPrice());
@@ -50,6 +53,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Page<Order> findAll(Integer pageNo, Integer pageSize, String sortBy) {
+        logger.info("Find all orders with pagination and sorting");
         if (pageNo < 1) {
             throw new IllegalArgumentException("Page index must not be less than one");
         }
@@ -69,16 +73,19 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public Optional<Order> findOrderById(Long id) {
+        logger.info("Find order by id");
         return orderRepository.findById(id);
     }
 
     @Override
     public Boolean existsByUserIdAndProductIdAndStatus(Long userId, Long productId, OrderStatus status) {
+        logger.info("Check if order exists by user id, product id and order status");
         return orderRepository.existsByUserIdAndProductIdAndStatus(userId, productId, status);
     }
 
     @Override
     public void setOrderStatus(Long orderId, String status) {
+        logger.info("Trying to set order status");
         OrderStatus orderStatus = OrderStatus.valueOf(status);
         orderRepository.findById(orderId)
                 .map(order -> {
@@ -87,6 +94,16 @@ public class OrderServiceImpl implements OrderService {
                 })
                 .map(orderRepository::save)
                 .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + orderId));
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrder(Long id) {
+        if (!orderRepository.existsById(id)) {
+            throw new EntityNotFoundException("Order not found with id: " + id);
+        }
+        logger.info("Trying to delete order with id: " + id);
+        orderRepository.deleteById(id);
     }
 
 

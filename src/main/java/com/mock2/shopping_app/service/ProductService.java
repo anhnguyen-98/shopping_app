@@ -17,6 +17,4 @@ public interface ProductService {
     Product updateProduct(Long productId, ProductDTO productDTO);
 
     void deleteProduct(Long id);
-
-    void uploadMedia();
 }

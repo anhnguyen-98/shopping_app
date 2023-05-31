@@ -12,4 +12,6 @@ public interface ReviewService {
     Page<Review> findAllByProductId(Long productId, Integer pageNo, Integer pageSize, String sortBy);
 
     void reviewProduct(Long productId, User user, ReviewDTO reviewDTO);
+
+    void deleteReview(Long id);
 }
