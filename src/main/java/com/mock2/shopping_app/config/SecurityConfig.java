@@ -52,11 +52,6 @@ public class SecurityConfig {
         return new JwtAuthFilter();
     }
 
-//    @Bean
-//    public HandlerExceptionResolver handlerExceptionResolver() {
-//        return new HandlerExceptionResolverComposite();
-//    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors().and()
